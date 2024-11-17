@@ -1,0 +1,134 @@
+version: 2
+
+sources:
+  - name: ecommerce
+    description: '{{ doc("source_docs") }}'
+    database: ecommerce
+    schema: public
+    tables:
+      - name: customers
+        description: '{{ doc("customers_table_docs") }}'
+        columns:
+          - name: customer_id
+            description:  '{{ doc("customer_id_docs") }}'
+          - name: customer_unique_id
+            description:  '{{ doc("customer_unique_docs") }}'
+          - name: customer_zip_code_prefix
+            description:  '{{ doc("customer_zip_code_prefix_docs") }}'
+          - name: customer_city
+            description:  '{{ doc("customer_city_docs") }}'
+          - name: customer_state
+            description:  '{{ doc("customer_state_docs") }}'
+      - name: orders
+        description: '{{ doc("orders_table_docs")}}'
+        columns:
+          - name: order_id
+            description: '{{ doc("order_id_docs") }}'
+          - name: order_status
+            description: '{{ doc("order_status_docs") }}'
+          - name: order_purchase_timestamp
+            description: '{{ doc("order_purchase_timestamp_docs") }}'
+          - name: order_approved_at
+            description: '{{ doc("order_approved_at_docs") }}'
+          - name: order_delivered_carrier_date
+            description: '{{ doc("order_delivered_carrier_date_docs") }}'
+          - name: order_delivered_customer_date
+            description: '{{ doc("order_delivered_customer_date_docs") }}'
+          - name: order_estimated_delivery_date
+            description: '{{ doc("order_estimated_delivery_date_docs") }}'
+          - name: customer_id
+            description: '{{ doc("orders_customer_id_docs") }}'
+      - name: geolocation
+        description: '{{ doc("geolocation_table_docs")}}'
+        columns: 
+          - name: geolocation_zip_code_prefix
+            description: '{{ doc("geolocation_zip_code_prefix_docs") }}'
+          - name: geolocation_lat
+            description: '{{ doc("geolocation_lat_docs") }}'
+          - name: geolocation_lng
+            description: '{{ doc("geolocation_lng_docs") }}'
+          - name: geolocation_city
+            description: '{{ doc("geolocation_city_docs") }}'
+          - name: geolocation_state
+            description: '{{ doc("geolocation_state_docs") }}'
+      - name: order_items
+        description: '{{ doc("order_items_table_docs")}}'
+        columns: 
+          - name: order_id
+            description: '{{ doc("order_items_order_id_docs") }}'
+          - name: order_item_id
+            description: '{{ doc("order_item_id_docs") }}'
+          - name: product_id
+            description: '{{ doc("order_items_product_id_docs") }}'
+          - name: seller_id
+            description: '{{ doc("order_items_seller_id_docs") }}'
+          - name: shipping_limit_date
+            description: '{{ doc("shipping_limit_date_docs") }}'
+          - name: price
+            description: '{{ doc("price_docs") }}'
+          - name: freight_value
+            description: '{{ doc("freight_value_docs") }}'
+      - name: order_payments
+        description: '{{ doc("order_payments_table_docs")}}'
+        columns: 
+          - name: order_id
+            description: '{{ doc("order_payments_order_id_docs") }}'
+          - name: payment_sequential
+            description: '{{ doc("payment_sequential_docs") }}'
+          - name: payment_type
+            description: '{{ doc("payment_type_docs") }}'
+          - name: payment_installments
+            description: '{{ doc("payment_installments_docs") }}'
+          - name: payment_value
+            description: '{{ doc("payment_value_docs") }}'
+      - name: order_reviews
+        description: '{{ doc("order_reviews_table_docs")}}'
+        columns: 
+          - name: review_id
+            description: '{{ doc("review_id_docs") }}'
+          - name: order_id
+            description: '{{ doc("order_reviews_order_id_docs") }}'
+          - name: review_score
+            description: '{{ doc("review_score_docs") }}'
+          - name: review_comment_title
+            description: '{{ doc("review_comment_title_docs") }}'
+          - name: review_comment_message
+            description: '{{ doc("review_comment_message_docs") }}'
+          - name: review_creation_date
+            description: '{{ doc("review_creation_date_docs") }}'
+          - name: review_answer_timestamp
+            description: '{{ doc("review_answer_timestamp_docs") }}'
+      - name: products
+        description: '{{ doc("products_table_docs")}}'
+        columns: 
+          - name: product_id
+            description: '{{ doc("product_id_docs") }}'
+          - name: product_category_name
+            description: '{{ doc("product_category_name_docs") }}'
+          - name: product_name_lenght
+            description: '{{ doc("product_name_lenght_docs") }}'
+          - name: product_description_lenght
+            description: '{{ doc("product_description_lenght_docs") }}'
+          - name: product_photos_qty
+            description: '{{ doc("product_photos_qty_docs") }}'
+          - name: product_weight_g
+            description: '{{ doc("product_weight_g_docs") }}'
+          - name: product_length_cm
+            description: '{{ doc("product_length_cm") }}'
+          - name: product_height_cm
+            description: '{{ doc("product_height_cm_docs") }}'
+          - name: product_width_cm
+            description: '{{ doc("product_width_cm_docs") }}'
+      - name: sellers 
+        description: '{{ doc("sellers_table_docs")}}'
+        columns: 
+          - name: seller_id
+            description: '{{ doc("seller_id_docs") }}'
+          - name: seller_zip_code_prefix
+            description: '{{ doc("seller_zip_code_prefix_docs") }}'
+          - name: seller_city
+            description: '{{ doc("seller_city_docs") }}'
+          - name: seller_state
+            description: '{{ doc("seller_state_docs") }}'
+
+        

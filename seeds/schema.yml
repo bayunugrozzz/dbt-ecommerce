@@ -1,0 +1,10 @@
+version: 2
+
+seeds:
+  - name: product_category_name
+    description: "merupakan daftar dari nama kategori produk yang di translate ke bahasa inggris"
+    columns:
+      - name: product_category_name
+        description: "merupakan nama kategori produk dalam bahasa portugis"
+      - name: product_category_name_english
+        description: "merupakan nama kategori produk dalam bahasa inggris"
