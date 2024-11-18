@@ -1,6 +1,6 @@
 WITH add_seeds AS (
     SELECT *
-    FROM {{ ref('product_category_name')}}
+    FROM {{ ref('product_category_name') }}
 ),
 
 final_data AS (
