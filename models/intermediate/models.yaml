@@ -1,0 +1,317 @@
+version: 2
+
+models:
+  - name: int_fct_customers_orders
+    description: >
+      Model intermediate ini memproses data pelanggan dan pesanan untuk menghitung 
+      metrik berbasis waktu, seperti waktu persetujuan, waktu pengiriman, 
+      dan perbedaan antara estimasi dan pengiriman aktual.
+    columns:
+      - name: customer_id
+        description: >
+          ID unik pelanggan. 
+          Diambil dari tabel `stg_customers` dan dihubungkan dengan pesanan.
+      - name: order_id
+        description: >
+          ID unik pesanan. 
+          Diambil dari tabel `stg_orders` dan dihubungkan ke pelanggan.
+      - name: time_to_approved_minutes
+        description: >
+          Waktu (dalam menit) dari pembelian hingga persetujuan pesanan. 
+          Dihitung sebagai `(order_approved_at - order_purchase_timestamp)`.
+      - name: time_carrier_delivered_hours
+        description: >
+          Waktu (dalam jam) yang diperlukan oleh pengirim untuk mengirimkan pesanan. 
+          Dihitung sebagai `(order_delivered_customer_date - order_delivered_carrier_date)`.
+      - name: time_approved_to_delivered_hours
+        description: >
+          Waktu (dalam jam) dari persetujuan pesanan hingga pengiriman ke pelanggan. 
+          Dihitung sebagai `(order_delivered_customer_date - order_approved_at)`.
+      - name: approved_to_carrier_delivery_hours
+        description: >
+          Waktu (dalam jam) dari persetujuan pesanan hingga diserahkan ke pengirim. 
+          Dihitung sebagai `(order_delivered_carrier_date - order_approved_at)`.
+      - name: different_estimated_delivered_hours
+        description: >
+          Perbedaan (dalam jam) antara estimasi dan waktu pengiriman aktual. 
+          Dihitung sebagai `((order_estimated_delivery_date - order_approved_at) - (order_delivered_customer_date - order_approved_at))`.
+    meta:
+      owner: "bayu setyo aji  nugroho"
+      created_on: "2024-11-19"
+      purpose: >
+        Sebagai tempat transformasi data sebelum di input ke folder mart.
+      tags: 
+        - intermediate
+
+
+  - name: int_fct_customers_payments
+    description: >
+      Model intermediate ini memproses data pembayaran pelanggan untuk 
+      menghitung total pembayaran, diskon, bunga, dan persentase pembayaran 
+      berdasarkan harga barang dan biaya pengiriman.
+    columns:
+      - name: customer_id
+        description: >
+          ID unik pelanggan. 
+          Diambil dari tabel `stg_customers` untuk mengidentifikasi pelanggan.
+      - name: order_id
+        description: >
+          ID unik pesanan. 
+          Digunakan untuk menghubungkan pelanggan dengan transaksi pembayaran.
+      - name: payment_installments
+        description: >
+          Jumlah cicilan pembayaran yang dipilih oleh pelanggan. 
+          Nilai default adalah `-1` jika data tidak tersedia.
+      - name: payment_sequential
+        description: >
+          Urutan pembayaran berdasarkan metode pembayaran. 
+          Nilai default adalah `-1` jika data tidak tersedia.
+      - name: payment_value
+        description: >
+          Nilai total pembayaran untuk pesanan. 
+          Default adalah `0` jika tidak ada pembayaran tercatat.
+      - name: total_price
+        description: >
+          Total harga pesanan, termasuk harga barang dan biaya pengiriman. 
+          Dihitung sebagai `ROUND(price + freight_value, 2)`.
+      - name: payment_percentage
+        description: >
+          Persentase pembayaran yang diterima dibandingkan dengan total harga. 
+          Dihitung sebagai `ROUND(payment_value / (price + freight_value) * 100, 2)`.
+      - name: discount_percentage
+        description: >
+          Persentase diskon berdasarkan perbedaan antara harga total dan nilai pembayaran. 
+          Dihitung sebagai `ROUND((1 - payment_value / (price + freight_value)) * 100, 2)`.
+      - name: discount_value
+        description: >
+          Nilai diskon dalam satuan mata uang. 
+          Dihitung sebagai `(price + freight_value) - payment_value`.
+      - name: total_interest
+        description: >
+          Total bunga yang dibayar oleh pelanggan jika pembayaran melebihi harga total. 
+          Dihitung sebagai `payment_value - (price + freight_value)`.
+      - name: interest_percentage
+        description: >
+          Persentase bunga dibandingkan dengan total harga. 
+          Dihitung sebagai `ROUND((payment_value - (price + freight_value)) / (price + freight_value) * 100, 2)`.
+    meta:
+      owner: "bayu setyo aji  nugroho"
+      created_on: "2024-11-19"
+      purpose: >
+        Sebagai tempat transformasi data sebelum di input ke folder mart.
+      tags: 
+        - intermediate
+
+  - name: int_fct_sellers_products
+    description: >
+      Model intermediate ini menghubungkan data penjual, produk, pesanan, 
+      dan ulasan untuk menghasilkan metrik seperti volume produk, berat produk 
+      dalam kilogram, serta waktu respons ulasan.
+    columns:
+      - name: seller_id
+        description: >
+          ID unik penjual. 
+          Diambil dari tabel `stg_sellers` untuk mengidentifikasi penjual.
+      - name: order_id
+        description: >
+          ID unik pesanan. 
+          Digunakan untuk menghubungkan pesanan dengan produk dan ulasan.
+      - name: product_id
+        description: >
+          ID unik produk. 
+          Mengidentifikasi barang yang terhubung ke pesanan dan penjual.
+      - name: product_weight_kg
+        description: >
+          Berat produk dalam kilogram. 
+          Dikonversi dari kolom `product_weight_g` dengan pembagian 1000.
+      - name: product_volume_cm3
+        description: >
+          Volume produk dalam sentimeter kubik. 
+          Dihitung sebagai `(product_length_cm * product_height_cm * product_width_cm) / 1000`.
+      - name: shipping_limit_date
+        description: >
+          Tanggal batas pengiriman barang. 
+          Diambil dari tabel `stg_order_items`.
+      - name: review_score
+        description: >
+          Skor ulasan untuk pesanan tertentu. 
+          Diambil dari tabel `stg_order_reviews`.
+      - name: review_responded_hours
+        description: >
+          Waktu yang diperlukan (dalam jam) bagi penjual untuk merespons ulasan. 
+          Dihitung sebagai `EXTRACT(EPOCH FROM(review_answer_timestamp - review_creation_date)) / 3600`.
+    meta:
+      owner: "bayu setyo aji  nugroho"
+      created_on: "2024-11-19"
+      purpose: >
+        Sebagai tempat transformasi data sebelum di input ke folder mart.
+      tags: 
+        - intermediate
+
+  - name: int_dims_customers
+    description: >-
+      Model ini menyediakan dimensi pelanggan dengan informasi dasar 
+      seperti ID pelanggan, lokasi, dan kode pos. Model ini membersihkan 
+      data dengan menggunakan nilai default untuk data yang kosong atau tidak ada.
+    columns:
+      - name: customer_id
+        description: "ID unik pelanggan yang digunakan dalam transaksi."
+      - name: customer_unique_id
+        description: "ID unik pelanggan yang konsisten di semua transaksi."
+      - name: customer_zip_code_prefix
+        description: >-
+          Awalan kode pos pelanggan. Jika data kosong, 
+          akan diisi dengan nilai default '00000'. 
+      - name: customer_city
+        description: >-
+          Nama kota pelanggan. Jika data kosong, akan diisi dengan nilai 'unknown'.
+      - name: customer_state
+        description: >-
+          Nama negara bagian tempat pelanggan berada. Jika data kosong, 
+          akan diisi dengan nilai 'unknown'.
+    meta:
+      owner: "bayu setyo aji  nugroho"
+      created_on: "2024-11-19"
+      purpose: >
+        Sebagai tempat transformasi data sebelum di input ke folder mart.
+      tags: 
+        - intermediate
+
+  - name: int_dims_reviews
+    description: >-
+      Model ini menyediakan dimensi ulasan (reviews) yang mencakup ID pesanan, 
+      ID ulasan, judul ulasan, dan isi pesan ulasan. Model ini memastikan bahwa 
+      data ulasan yang kosong diisi dengan nilai default untuk mencegah data hilang.
+    columns:
+      - name: order_id
+        description: "ID unik pesanan yang terkait dengan ulasan."
+      - name: review_id
+        description: "ID unik ulasan dari pelanggan."
+      - name: review_comment_title
+        description: >-
+          Judul ulasan yang diberikan pelanggan. Jika tidak ada judul, 
+          maka akan diisi dengan nilai default 'no review title'.
+      - name: review_comment_message
+        description: >-
+          Isi pesan ulasan yang diberikan pelanggan. Jika tidak ada pesan, 
+          maka akan diisi dengan nilai default 'no review message'.
+    meta:
+      owner: "bayu setyo aji  nugroho"
+      created_on: "2024-11-19"
+      purpose: >
+        Sebagai tempat transformasi data sebelum di input ke folder mart.
+      tags: 
+        - intermediate
+
+  - name: int_dims_sellers
+    description: >-
+      Model ini menyediakan dimensi penjual (sellers) yang mencakup ID penjual, 
+      kode pos penjual, kota penjual, dan provinsi penjual. Model ini juga menangani 
+      nilai yang kosong dengan menggantinya menggunakan nilai default untuk memastikan 
+      kelengkapan data.
+    columns:
+      - name: seller_id
+        description: "ID unik penjual."
+      - name: seller_zip_code_prefix
+        description: >-
+          Kode pos penjual. Jika tidak tersedia, akan diisi dengan nilai default '00000'.
+      - name: seller_city
+        description: >-
+          Nama kota tempat penjual berada. Jika tidak tersedia, akan diisi dengan nilai default 'unknown'.
+      - name: seller_state
+        description: >-
+          Nama provinsi tempat penjual berada. Jika tidak tersedia, akan diisi dengan nilai default 'unknown'.  
+    meta:
+        owner: "bayu setyo aji  nugroho"
+        created_on: "2024-11-19"
+        purpose: >
+          Sebagai tempat transformasi data sebelum di input ke folder mart.
+        tags: 
+          - intermediate
+    
+  - name: int_dims_date_orders
+    description: >-
+      Model ini menyediakan dimensi tanggal yang terkait dengan pesanan (orders). 
+      Dimensi ini mencakup informasi tentang waktu pembelian, waktu persetujuan, 
+      waktu pengiriman oleh kurir, waktu pengiriman ke pelanggan, dan estimasi waktu pengiriman. 
+      Data ditransformasikan ke tipe data `TIMESTAMP` untuk memastikan konsistensi.
+    columns:
+      - name: order_id
+        description: "ID unik untuk setiap pesanan."
+      - name: order_purchase_timestamp
+        description: >-
+          Waktu pembelian pesanan dalam format timestamp. Menunjukkan kapan pesanan 
+          dibuat oleh pelanggan.
+      - name: order_approved_at
+        description: >-
+          Waktu persetujuan pesanan dalam format timestamp. Menunjukkan kapan pesanan 
+          disetujui untuk diproses.
+      - name: order_delivered_carrier_date
+        description: >-
+          Waktu pengiriman oleh kurir dalam format timestamp. Menunjukkan kapan kurir 
+          menerima pesanan untuk dikirimkan.
+      - name: order_delivered_customer_date
+        description: >-
+          Waktu pengiriman ke pelanggan dalam format timestamp. Menunjukkan kapan pesanan 
+          berhasil diterima oleh pelanggan.
+      - name: order_estimated_delivery_date
+        description: >-
+          Estimasi waktu pengiriman dalam format timestamp. Menunjukkan tanggal yang 
+          diperkirakan untuk pengiriman pesanan ke pelanggan.
+    meta:
+        owner: "bayu setyo aji  nugroho"
+        created_on: "2024-11-19"
+        purpose: >
+          Sebagai tempat transformasi data sebelum di input ke folder mart.
+        tags: 
+          - intermediate
+  
+  - name: int_dims_orders
+    description: >-
+      Model ini menyediakan dimensi pesanan (orders) yang mencakup informasi 
+      tentang status pesanan dan jenis pembayaran. Model ini menggabungkan data 
+      dari tabel pesanan dan pembayaran dengan mengelola nilai-nilai kosong menggunakan 
+      nilai default.
+    columns:
+      - name: order_id
+        description: "ID unik untuk setiap pesanan."
+      - name: order_status
+        description: >-
+          Status pesanan yang menunjukkan tahapan dalam siklus hidup pesanan, seperti 
+          `delivered`, `shipped`, `canceled`, dan lainnya. Jika data tidak tersedia, 
+          status akan disetel ke 'unknown'.
+      - name: payment_type
+        description: >-
+          Jenis metode pembayaran yang digunakan pelanggan untuk pesanan, seperti 
+          `credit_card`, `boleto`, atau `voucher`. Jika data tidak tersedia, 
+          metode pembayaran akan disetel ke 'unknown'.
+    meta:
+        owner: "bayu setyo aji  nugroho"
+        created_on: "2024-11-19"
+        purpose: >
+          Sebagai tempat transformasi data sebelum di input ke folder mart.
+        tags: 
+          - intermediate
+
+  - name: int_dims_product_category_name
+    description: >-
+      Model ini menyediakan dimensi kategori produk yang mencakup nama kategori dalam 
+      bahasa asli dan bahasa Inggris. Model ini berguna untuk kebutuhan analisis data 
+      multibahasa atau lokalisasi.
+    columns:
+      - name: product_category_name
+        description: >-
+          Nama kategori produk dalam bahasa asli yang digunakan dalam data sumber. 
+          Contoh: `beleza_saude`, `informatica_acessorios`.
+      - name: product_category_name_english
+        description: >-
+          Nama kategori produk dalam bahasa Inggris, yang disediakan untuk kebutuhan 
+          internasionalisasi atau standar bahasa global. Contoh: `beauty_health`, 
+          `computers_accessories`.
+    meta:
+        owner: "bayu setyo aji  nugroho"
+        created_on: "2024-11-19"
+        purpose: >
+          Sebagai tempat transformasi data sebelum di input ke folder mart.
+        tags: 
+          - intermediate
