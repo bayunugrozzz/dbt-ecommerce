@@ -1,0 +1,405 @@
+version: 2
+
+models:
+  - name: fct_ecom
+    description: >
+      Model ini merupakan **fact table** yang dirancang untuk menggabungkan data dari berbagai 
+      sumber terkait pesanan pelanggan, pembayaran, dan informasi produk-penjual. 
+      Dengan memastikan hanya data pengiriman terbaru untuk setiap pasangan pesanan-produk yang 
+      dipertahankan, model ini menyediakan dataset yang bersih dan terstruktur untuk mendukung 
+      analisis operasional dan bisnis. 
+
+      **Tujuan utama model ini adalah:**
+      - Menyediakan satu sumber data yang terpusat untuk analisis pesanan, pembayaran, 
+        dan kinerja produk-penjual.
+      - Mempermudah identifikasi pola dan tren dalam perilaku pelanggan, efisiensi pengiriman, 
+        serta evaluasi kepuasan pelanggan.
+      - Mendukung pembuatan laporan yang akurat dan pengambilan keputusan berbasis data.
+
+    purpose: >
+      Tujuan pembuatan model ini adalah untuk menyediakan dataset yang bersih dan terstruktur, 
+      yang dapat digunakan untuk analisis kinerja penjualan, perilaku pelanggan, 
+      efisiensi pengiriman, dan evaluasi kepuasan pelanggan. Model ini membantu 
+      mempermudah analisis lintas fungsi di seluruh proses bisnis.
+
+    usage: >
+      Model ini digunakan dalam analisis data ketika diperlukan informasi rinci tentang:
+      - Riwayat pembayaran pelanggan.
+      - Hubungan pesanan dengan produk dan penjual.
+      - Kinerja pengiriman dan perbedaan estimasi waktu pengiriman.
+      - Skor dan respons ulasan pelanggan.
+      - Analisis kinerja operasional berdasarkan data waktu dan volume produk.
+
+    columns:
+      - name: customer_id
+        description: >
+          ID unik yang mengidentifikasi pelanggan yang melakukan pesanan.
+      - name: order_id
+        description: >
+          ID unik yang mengidentifikasi pesanan pelanggan.
+      - name: seller_id
+        description: >
+          ID unik yang mengidentifikasi penjual yang menyediakan produk dalam pesanan.
+      - name: product_id
+        description: >
+          ID unik yang mengidentifikasi produk yang termasuk dalam pesanan.
+      - name: payment_installments
+        description: >
+          Jumlah cicilan yang dipilih pelanggan untuk pembayaran.
+      - name: payment_sequential
+        description: >
+          Nomor urut cicilan untuk pesanan tertentu.
+      - name: payment_value
+        description: >
+          Nilai dari setiap cicilan pembayaran.
+      - name: total_price
+        description: >
+          Total harga pesanan termasuk semua produk.
+      - name: payment_percentage
+        description: >
+          Persentase dari total harga pesanan yang terwakili oleh cicilan tertentu.
+      - name: product_weight_kg
+        description: >
+          Berat produk dalam kilogram.
+      - name: product_volume_cm3
+        description: >
+          Volume produk dalam sentimeter kubik.
+      - name: shipping_limit_date
+        description: >
+          Batas waktu bagi kurir untuk mengirimkan pesanan.
+      - name: review_score
+        description: >
+          Skor yang diberikan pelanggan untuk produk, mencerminkan tingkat kepuasan.
+      - name: review_responded_hours
+        description: >
+          Waktu dalam jam yang dibutuhkan penjual untuk merespons ulasan pelanggan.
+      - name: time_to_approved_minutes
+        description: >
+          Waktu dalam menit yang dibutuhkan untuk menyetujui pesanan setelah dilakukan.
+      - name: time_carrier_delivered_hours
+        description: >
+          Waktu dalam jam yang dibutuhkan kurir untuk mengirimkan pesanan dari pengiriman.
+      - name: time_approved_to_delivered_hours
+        description: >
+          Waktu dalam jam antara persetujuan pesanan dan pengiriman ke pelanggan.
+      - name: approved_to_carrier_delivery_hours
+        description: >
+          Waktu dalam jam antara persetujuan pesanan dan pengiriman ke kurir.
+      - name: different_estimated_delivered_hours
+        description: >
+          Perbedaan dalam jam antara waktu pengiriman yang diperkirakan dan waktu pengiriman aktual.
+    tests:
+      - no_duplicates:
+          columns: 
+            - order_id
+            - product_id
+    meta:
+      owner: "bayu setyo aji  nugroho"
+      created_on: "2024-11-20"
+      tags: 
+        - fact_table
+
+
+  - name: fct_validation_duplicated
+    description: >
+      Model ini merupakan **fact table** yang digunakan untuk melakukan pengecekan terhadap 
+      data duplikat dalam tabel faktual `fct_ecom`. Model ini mengidentifikasi baris duplikat 
+      yang memiliki kombinasi `order_id` dan `product_id` yang sama lebih dari satu kali. 
+      Ini penting untuk memastikan integritas data dan mendeteksi adanya duplikasi yang perlu 
+      ditangani lebih lanjut dalam proses ETL atau analisis.
+
+      **Tujuan utama model ini adalah:**
+      - Melakukan validasi terhadap data faktual untuk mendeteksi baris duplikat.
+      - Memberikan informasi tentang jumlah duplikat yang ada berdasarkan kombinasi `order_id` dan `product_id`.
+      - Memastikan kualitas data dalam tabel faktual dengan mendeteksi dan menangani duplikasi.
+
+    purpose: >
+      Model ini bertujuan untuk mendeteksi dan melaporkan data duplikat yang ada dalam 
+      tabel `fct_ecom` berdasarkan kombinasi `order_id` dan `product_id`. Ini memungkinkan 
+      tim data untuk memastikan data yang digunakan dalam analisis tidak mengandung duplikasi 
+      yang dapat mengganggu hasil analisis.
+
+    usage: >
+      Model ini digunakan untuk:
+      - Mendeteksi duplikasi dalam data transaksi e-commerce yang dapat menyebabkan 
+        kesalahan dalam perhitungan atau laporan.
+      - Memverifikasi dan memastikan integritas data sebelum digunakan dalam analisis lebih lanjut.
+      - Memberikan masukan kepada tim pengelola data untuk melakukan perbaikan atau pembersihan data.
+
+    columns:
+      - name: order_id
+        description: >
+          ID unik pesanan yang digunakan untuk mengidentifikasi transaksi yang terduplikasi.
+      - name: product_id
+        description: >
+          ID unik produk yang terkait dengan pesanan yang terduplikasi.
+      - name: count_rows
+        description: >
+          Jumlah baris duplikat yang ditemukan untuk kombinasi `order_id` dan `product_id`. 
+          Jika nilai lebih besar dari 1, itu menunjukkan adanya duplikasi.
+    meta:
+      owner: "bayu setyo aji  nugroho"
+      created_on: "2024-11-20"
+      tags: 
+        - validation
+
+
+  - name: dim_customers
+    description: >
+      Model ini merupakan **dimension table** yang dirancang untuk menyimpan informasi unik 
+      mengenai pelanggan. Data ini diambil dari tabel intermediate `int_dims_customers` 
+      dan dimurnikan untuk memastikan hanya kolom yang relevan yang disertakan. 
+
+      **Tujuan utama model ini adalah:**
+      - Memberikan referensi data pelanggan yang bersih dan terstruktur untuk kebutuhan analisis.
+      - Mendukung hubungan antara data pelanggan dan data faktual lainnya, seperti pesanan atau pembayaran.
+      - Menyediakan atribut pelanggan untuk analisis geografis, seperti kota dan negara bagian.
+
+    purpose: >
+      Model ini bertujuan untuk menjadi sumber data utama bagi atribut pelanggan, yang dapat digunakan 
+      dalam analisis segmentasi pelanggan, evaluasi wilayah geografis, dan pembuatan laporan.
+
+    usage: >
+      Model ini digunakan ketika dibutuhkan informasi pelanggan, seperti:
+      - Identifikasi pelanggan berdasarkan ID unik.
+      - Analisis distribusi geografis pelanggan.
+      - Kebutuhan atribut pelanggan dalam hubungannya dengan tabel fact lainnya.
+
+    columns:
+      - name: customer_id
+        description: >
+          ID unik yang mengidentifikasi pelanggan dalam tabel ini, biasanya digunakan untuk relasi ke tabel fact.
+      - name: customer_unique_id
+        description: >
+          ID unik yang mengidentifikasi pelanggan secara global di seluruh sistem.
+      - name: customer_zip_code_prefix
+        description: >
+          Kode pos pelanggan yang mencerminkan lokasi geografis mereka.
+      - name: customer_city
+        description: >
+          Nama kota tempat pelanggan berada.
+      - name: customer_state
+        description: >
+          Nama negara bagian tempat pelanggan berada.
+    meta:
+      owner: "bayu setyo aji  nugroho"
+      created_on: "2024-11-20"
+      tags: 
+        - dim_table
+
+
+  - name: dim_date
+    description: >
+      Model ini merupakan **dimension table** yang dirancang untuk menyimpan informasi 
+      terkait tanggal dan waktu dari siklus pesanan. Data ini diambil dari tabel intermediate 
+      `int_dims_date_orders` dan dimurnikan untuk mencakup atribut waktu yang relevan 
+      dengan proses pesanan. 
+
+      **Tujuan utama model ini adalah:**
+      - Menyediakan dimensi waktu yang terstruktur untuk analisis terkait siklus hidup pesanan.
+      - Mempermudah penghitungan dan analisis berbasis waktu, seperti durasi pengiriman dan kepatuhan SLA (Service Level Agreement).
+      - Mendukung integrasi dengan tabel fact lain dalam proses analisis.
+
+    purpose: >
+      Model ini bertujuan untuk menyediakan dimensi waktu yang kaya dan detail, yang dapat 
+      digunakan dalam analisis proses pesanan, pengiriman, dan evaluasi waktu pengiriman.
+
+    usage: >
+      Model ini digunakan dalam analisis data yang memerlukan informasi terkait:
+      - Tanggal dan waktu pembelian pesanan.
+      - Tanggal persetujuan pesanan.
+      - Tanggal pengiriman oleh kurir dan penerimaan oleh pelanggan.
+      - Estimasi waktu pengiriman dibandingkan dengan waktu pengiriman aktual.
+
+    columns:
+      - name: order_id
+        description: >
+          ID unik yang mengidentifikasi pesanan, digunakan untuk menghubungkan dimensi waktu 
+          dengan tabel fact pesanan.
+      - name: order_purchase_timestamp
+        description: >
+          Timestamp yang menunjukkan waktu pembelian pesanan oleh pelanggan.
+      - name: order_approved_at
+        description: >
+          Timestamp yang menunjukkan waktu persetujuan pesanan setelah dilakukan.
+      - name: order_delivered_carrier_date
+        description: >
+          Tanggal saat pesanan diterima oleh kurir untuk pengiriman.
+      - name: order_delivered_customer_date
+        description: >
+          Tanggal saat pesanan berhasil diterima oleh pelanggan.
+      - name: order_estimated_delivery_date
+        description: >
+          Tanggal estimasi pengiriman yang diberikan kepada pelanggan pada saat pesanan dibuat.
+    meta:
+      owner: "bayu setyo aji  nugroho"
+      created_on: "2024-11-20"
+      tags: 
+        - dim_table
+
+
+  - name: dim_orders
+    description: >
+      Model ini merupakan **dimension table** yang berfungsi untuk menyimpan informasi terkait 
+      atribut pesanan. Data ini diambil dari tabel intermediate `int_dims_orders` dan hanya 
+      mencakup kolom yang relevan seperti status pesanan dan metode pembayaran. 
+
+      **Tujuan utama model ini adalah:**
+      - Menyediakan data atribut pesanan yang bersih dan terstruktur untuk mendukung analisis lebih lanjut.
+      - Mempermudah pengelompokan atau segmentasi data berdasarkan status pesanan atau metode pembayaran.
+      - Mendukung integrasi dengan tabel fact untuk analisis lebih rinci.
+
+    purpose: >
+      Model ini bertujuan untuk menjadi referensi utama untuk informasi pesanan yang mencakup 
+      status dan tipe pembayaran, yang digunakan dalam analisis kinerja pesanan, perilaku pelanggan, 
+      dan evaluasi metode pembayaran.
+
+    usage: >
+      Model ini digunakan ketika diperlukan informasi tentang:
+      - Status pesanan untuk analisis seperti tingkat pembatalan atau penyelesaian pesanan.
+      - Metode pembayaran untuk memahami preferensi pelanggan atau mengevaluasi distribusi metode pembayaran.
+      - Hubungan atribut pesanan dengan data faktual lainnya dalam analisis lintas fungsi.
+
+    columns:
+      - name: order_id
+        description: >
+          ID unik yang mengidentifikasi pesanan, digunakan untuk menghubungkan tabel dimensi ini 
+          dengan tabel fact atau dimensi lainnya.
+      - name: order_status
+        description: >
+          Status pesanan yang mencerminkan tahap penyelesaian, seperti `created`, `shipped`, atau `delivered`.
+      - name: payment_type
+        description: >
+          Tipe pembayaran yang digunakan pelanggan untuk pesanan, seperti `credit_card`, `boleto`, atau lainnya.
+    meta:
+      owner: "bayu setyo aji  nugroho"
+      created_on: "2024-11-20"
+      tags: 
+        - dim_table
+
+
+  - name: product_category_name
+    description: >
+      Model ini merupakan **dimension table** yang digunakan untuk menyimpan informasi tentang 
+      nama kategori produk dalam bahasa asli dan bahasa Inggris. Data ini diambil dari tabel 
+      intermediate `int_dims_product_category_name` dan hanya menyertakan kolom yang relevan 
+      untuk kebutuhan analisis kategori produk. 
+
+      **Tujuan utama model ini adalah:**
+      - Menyediakan referensi nama kategori produk dalam dua bahasa untuk mendukung berbagai 
+        kebutuhan analisis.
+      - Mempermudah pengelompokan produk berdasarkan kategori dalam laporan atau dashboard.
+      - Mendukung integrasi dengan tabel fact atau tabel dimensi lainnya dalam data warehouse.
+
+    purpose: >
+      Model ini bertujuan untuk menyediakan data standar tentang nama kategori produk, 
+      baik dalam bahasa asli maupun bahasa Inggris, yang dapat digunakan untuk kebutuhan 
+      analisis multi-bahasa atau lokal.
+
+    usage: >
+      Model ini digunakan untuk:
+      - Analisis produk berdasarkan kategori tertentu.
+      - Menyediakan nama kategori produk dalam laporan atau visualisasi.
+      - Mengintegrasikan nama kategori dengan data faktual untuk analisis lintas fungsi.
+
+    columns:
+      - name: product_category_name
+        description: >
+          Nama kategori produk dalam bahasa asli yang digunakan dalam sumber data.
+      - name: product_category_name_english
+        description: >
+          Nama kategori produk dalam bahasa Inggris, digunakan untuk analisis internasional 
+          atau kebutuhan pelaporan dengan standar bahasa Inggris.
+    meta:
+      owner: "bayu setyo aji  nugroho"
+      created_on: "2024-11-20"
+      tags: 
+        - dim_table
+
+
+  - name: dim_reviews
+    description: >
+      Model ini merupakan **dimension table** yang digunakan untuk menyimpan informasi terkait 
+      ulasan atau review dari pelanggan terhadap pesanan. Data ini diambil dari tabel intermediate 
+      `int_dims_reviews` dan mencakup atribut penting seperti ID ulasan, judul, dan pesan komentar. 
+
+      **Tujuan utama model ini adalah:**
+      - Menyediakan data ulasan pelanggan yang terstruktur untuk mendukung analisis sentimen 
+        atau kepuasan pelanggan.
+      - Mempermudah penghubungan ulasan dengan data pesanan untuk analisis mendalam.
+      - Mendukung pelaporan terkait ulasan pelanggan pada berbagai tingkat, baik agregat maupun individu.
+
+    purpose: >
+      Model ini bertujuan untuk menyediakan data ulasan pelanggan yang bersih dan lengkap, 
+      yang dapat digunakan untuk analisis pengalaman pelanggan, identifikasi masalah produk atau layanan, 
+      serta pembuatan laporan kepuasan pelanggan.
+
+    usage: >
+      Model ini digunakan dalam analisis data terkait:
+      - Isi ulasan pelanggan untuk evaluasi kualitas layanan atau produk.
+      - Identifikasi pola dalam komentar untuk menemukan tren atau keluhan utama.
+      - Penghubungan antara ulasan dan pesanan untuk menganalisis hubungan antara kualitas 
+        pengiriman, produk, atau layanan dengan tingkat kepuasan pelanggan.
+
+    columns:
+      - name: order_id
+        description: >
+          ID unik yang mengidentifikasi pesanan, digunakan untuk menghubungkan ulasan dengan pesanan tertentu.
+      - name: review_id
+        description: >
+          ID unik yang mengidentifikasi ulasan pelanggan dalam tabel ini.
+      - name: review_comment_title
+        description: >
+          Judul ulasan yang diberikan oleh pelanggan, seringkali mencerminkan ringkasan pengalaman pelanggan.
+      - name: review_comment_message
+        description: >
+          Isi pesan ulasan yang diberikan oleh pelanggan, berisi detail pengalaman mereka 
+          terkait produk atau layanan.
+    meta:
+      owner: "bayu setyo aji  nugroho"
+      created_on: "2024-11-20"
+      tags: 
+        - dim_table
+
+
+  - name: dim_sellers
+    description: >
+      Model ini merupakan **dimension table** yang digunakan untuk menyimpan informasi terkait 
+      penjual (sellers). Data ini diambil dari tabel intermediate `int_dims_sellers` dan mencakup 
+      atribut seperti ID penjual, kode pos, kota, dan negara bagian. 
+
+      **Tujuan utama model ini adalah:**
+      - Menyediakan informasi lokasi dan identitas penjual untuk mendukung analisis berbasis geografis.
+      - Mempermudah penghubungan penjual dengan data transaksi atau produk dalam analisis.
+      - Mendukung pengelompokan dan pelaporan penjual berdasarkan wilayah atau area operasional.
+
+    purpose: >
+      Model ini bertujuan untuk menyediakan data penjual yang bersih dan terstruktur, 
+      yang dapat digunakan dalam analisis kinerja penjual, evaluasi distribusi geografis, 
+      dan mendukung integrasi dengan data transaksi atau produk.
+
+    usage: >
+      Model ini digunakan untuk:
+      - Analisis kinerja penjual berdasarkan lokasi geografis.
+      - Pemahaman distribusi penjual untuk kebutuhan logistik atau pemasaran.
+      - Penghubungan informasi penjual dengan data transaksi atau produk dalam analisis lintas fungsi.
+
+    columns:
+      - name: seller_id
+        description: >
+          ID unik yang mengidentifikasi penjual, digunakan untuk menghubungkan data penjual 
+          dengan tabel fact atau dimensi lainnya.
+      - name: seller_zip_code_prefix
+        description: >
+          Awalan kode pos yang menunjukkan lokasi geografis penjual.
+      - name: seller_city
+        description: >
+          Nama kota tempat penjual beroperasi atau berlokasi.
+      - name: seller_state
+        description: >
+          Negara bagian tempat penjual beroperasi atau berlokasi.
+    meta:
+      owner: "bayu setyo aji  nugroho"
+      created_on: "2024-11-20"
+      tags: 
+        - dim_table
