@@ -9,7 +9,7 @@ WITH get_dims_customers AS (
         {{ ref('stg_customers') }}
 ),
 
-transfrorm AS (
+transform AS (
     SELECT
         customer_id,
         customer_unique_id,
@@ -28,7 +28,7 @@ final AS (
         customer_city,
         customer_state
     FROM
-        transfrorm
+        transform
 )
 
 SELECT * FROM final
