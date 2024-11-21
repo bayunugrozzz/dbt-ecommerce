@@ -34,7 +34,7 @@ final AS (
         customer_id
         , order_id
         , coalesce(seller_id, 'unknown') AS seller_id
-        , product_id
+        , coalesce(product_id, 'unknown') AS product_id
         , payment_installments
         , payment_sequential
         , payment_value

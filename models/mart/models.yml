@@ -24,36 +24,61 @@ models:
       - name: product_id
         description: >
           ID unik yang mengidentifikasi produk yang termasuk dalam pesanan.
+        tests:
+            - not_null
       - name: payment_installments
         description: >
           Jumlah cicilan yang dipilih pelanggan untuk pembayaran.
+        tests:
+          - dbt_utils.not_null_proportion:
+              at_least: 0.95
       - name: payment_sequential
         description: >
           Nomor urut cicilan untuk pesanan tertentu.
+        tests:
+          - dbt_utils.not_null_proportion:
+              at_least: 0.95
       - name: payment_value
         description: >
           Nilai dari setiap cicilan pembayaran.
         tests: 
           - dbt_utils.accepted_range:
               min_value: 0
+          - dbt_utils.not_null_proportion:
+              at_least: 0.95
       - name: total_price
         description: >
           Total harga pesanan termasuk semua produk.
         tests: 
           - dbt_utils.accepted_range:
               min_value: 0
+          - dbt_utils.not_null_proportion:
+              at_least: 0.95
       - name: payment_percentage
         description: >
           Persentase dari total harga pesanan yang terwakili oleh cicilan tertentu.
       - name: product_weight_kg
         description: >
           Berat produk dalam kilogram.
+        tests:
+          - dbt_utils.not_null_proportion:
+              at_least: 0.95
+          - dbt_utils.accepted_range:
+              min_value: 0
       - name: product_volume_cm3
         description: >
           Volume produk dalam sentimeter kubik.
+        tests: 
+          - dbt_utils.accepted_range:
+              min_value: 0
+          - dbt_utils.not_null_proportion:
+              at_least: 0.95
       - name: shipping_limit_date
         description: >
           Batas waktu bagi kurir untuk mengirimkan pesanan.
+        tests: 
+          - dbt_utils.not_null_proportion:
+              at_least: 0.95
       - name: review_score
         description: >
           Skor yang diberikan pelanggan untuk produk, mencerminkan tingkat kepuasan.
@@ -63,6 +88,11 @@ models:
       - name: review_responded_hours
         description: >
           Waktu dalam jam yang dibutuhkan penjual untuk merespons ulasan pelanggan.
+        tests: 
+          - dbt_utils.accepted_range:
+              min_value: 0
+          - dbt_utils.not_null_proportion:
+              at_least: 0.95
       - name: time_to_approved_minutes
         description: >
           Waktu dalam menit yang dibutuhkan untuk menyetujui pesanan setelah dilakukan.
@@ -157,9 +187,15 @@ models:
       - name: order_status
         description: >
           Status pesanan yang mencerminkan tahap penyelesaian, seperti `created`, `shipped`, atau `delivered`.
+        tests:
+          - accepted_values: 
+              values: ['shipped', 'unavailable', 'invoiced', 'created', 'approved', 'delivered', 'canceled', 'processing']
       - name: payment_type
         description: >
           Tipe pembayaran yang digunakan pelanggan untuk pesanan, seperti `credit_card`, `boleto`, atau lainnya.
+        tests:
+          - accepted_values: 
+              values: ['credit_card', 'boleto', 'voucher', 'not_defined', 'debit_card', 'unknown']
     meta:
       owner: "bayu setyo aji  nugroho"
       created_on: "2024-11-20"
