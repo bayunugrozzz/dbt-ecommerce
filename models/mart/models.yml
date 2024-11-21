@@ -3,43 +3,24 @@ version: 2
 models:
   - name: fct_ecom
     description: >
-      Model ini merupakan **fact table** yang dirancang untuk menggabungkan data dari berbagai 
-      sumber terkait pesanan pelanggan, pembayaran, dan informasi produk-penjual. 
-      Dengan memastikan hanya data pengiriman terbaru untuk setiap pasangan pesanan-produk yang 
-      dipertahankan, model ini menyediakan dataset yang bersih dan terstruktur untuk mendukung 
-      analisis operasional dan bisnis. 
-
-      **Tujuan utama model ini adalah:**
-      - Menyediakan satu sumber data yang terpusat untuk analisis pesanan, pembayaran, 
-        dan kinerja produk-penjual.
-      - Mempermudah identifikasi pola dan tren dalam perilaku pelanggan, efisiensi pengiriman, 
-        serta evaluasi kepuasan pelanggan.
-      - Mendukung pembuatan laporan yang akurat dan pengambilan keputusan berbasis data.
-
-    purpose: >
-      Tujuan pembuatan model ini adalah untuk menyediakan dataset yang bersih dan terstruktur, 
-      yang dapat digunakan untuk analisis kinerja penjualan, perilaku pelanggan, 
-      efisiensi pengiriman, dan evaluasi kepuasan pelanggan. Model ini membantu 
-      mempermudah analisis lintas fungsi di seluruh proses bisnis.
-
-    usage: >
-      Model ini digunakan dalam analisis data ketika diperlukan informasi rinci tentang:
-      - Riwayat pembayaran pelanggan.
-      - Hubungan pesanan dengan produk dan penjual.
-      - Kinerja pengiriman dan perbedaan estimasi waktu pengiriman.
-      - Skor dan respons ulasan pelanggan.
-      - Analisis kinerja operasional berdasarkan data waktu dan volume produk.
+      Model ini adalah **fact table** yang menggabungkan data pesanan, pembayaran, dan produk-penjual, hanya menyimpan data pengiriman terbaru untuk setiap pasangan pesanan-produk. Model ini dirancang untuk mendukung berbagai analisis seperti kinerja penjualan, perilaku pelanggan, efisiensi pengiriman, dan kepuasan pelanggan. Dataset ini juga membantu melihat riwayat pembayaran, hubungan pesanan dengan produk dan penjual, analisis pengiriman, serta evaluasi operasional berdasarkan waktu dan volume produk. Pengujian dilakukan untuk memastikan kombinasi `order_id` dan `product_id` unik, sehingga dataset tetap konsisten dan bebas duplikasi, siap digunakan untuk analisis lebih lanjut.
 
     columns:
       - name: customer_id
         description: >
           ID unik yang mengidentifikasi pelanggan yang melakukan pesanan.
+        tests: 
+            - not_null
       - name: order_id
         description: >
           ID unik yang mengidentifikasi pesanan pelanggan.
+        tests: 
+            - not_null
       - name: seller_id
         description: >
           ID unik yang mengidentifikasi penjual yang menyediakan produk dalam pesanan.
+        tests: 
+            - not_null
       - name: product_id
         description: >
           ID unik yang mengidentifikasi produk yang termasuk dalam pesanan.
@@ -52,9 +33,15 @@ models:
       - name: payment_value
         description: >
           Nilai dari setiap cicilan pembayaran.
+        tests: 
+          - dbt_utils.accepted_range:
+              min_value: 0
       - name: total_price
         description: >
           Total harga pesanan termasuk semua produk.
+        tests: 
+          - dbt_utils.accepted_range:
+              min_value: 0
       - name: payment_percentage
         description: >
           Persentase dari total harga pesanan yang terwakili oleh cicilan tertentu.
@@ -70,6 +57,9 @@ models:
       - name: review_score
         description: >
           Skor yang diberikan pelanggan untuk produk, mencerminkan tingkat kepuasan.
+        tests: 
+          - dbt_utils.accepted_range:
+              min_value: 0
       - name: review_responded_hours
         description: >
           Waktu dalam jam yang dibutuhkan penjual untuk merespons ulasan pelanggan.
@@ -89,8 +79,8 @@ models:
         description: >
           Perbedaan dalam jam antara waktu pengiriman yang diperkirakan dan waktu pengiriman aktual.
     tests:
-      - no_duplicates:
-          columns: 
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
             - order_id
             - product_id
     meta:
@@ -100,71 +90,9 @@ models:
         - fact_table
 
 
-  - name: fct_validation_duplicated
-    description: >
-      Model ini merupakan **fact table** yang digunakan untuk melakukan pengecekan terhadap 
-      data duplikat dalam tabel faktual `fct_ecom`. Model ini mengidentifikasi baris duplikat 
-      yang memiliki kombinasi `order_id` dan `product_id` yang sama lebih dari satu kali. 
-      Ini penting untuk memastikan integritas data dan mendeteksi adanya duplikasi yang perlu 
-      ditangani lebih lanjut dalam proses ETL atau analisis.
-
-      **Tujuan utama model ini adalah:**
-      - Melakukan validasi terhadap data faktual untuk mendeteksi baris duplikat.
-      - Memberikan informasi tentang jumlah duplikat yang ada berdasarkan kombinasi `order_id` dan `product_id`.
-      - Memastikan kualitas data dalam tabel faktual dengan mendeteksi dan menangani duplikasi.
-
-    purpose: >
-      Model ini bertujuan untuk mendeteksi dan melaporkan data duplikat yang ada dalam 
-      tabel `fct_ecom` berdasarkan kombinasi `order_id` dan `product_id`. Ini memungkinkan 
-      tim data untuk memastikan data yang digunakan dalam analisis tidak mengandung duplikasi 
-      yang dapat mengganggu hasil analisis.
-
-    usage: >
-      Model ini digunakan untuk:
-      - Mendeteksi duplikasi dalam data transaksi e-commerce yang dapat menyebabkan 
-        kesalahan dalam perhitungan atau laporan.
-      - Memverifikasi dan memastikan integritas data sebelum digunakan dalam analisis lebih lanjut.
-      - Memberikan masukan kepada tim pengelola data untuk melakukan perbaikan atau pembersihan data.
-
-    columns:
-      - name: order_id
-        description: >
-          ID unik pesanan yang digunakan untuk mengidentifikasi transaksi yang terduplikasi.
-      - name: product_id
-        description: >
-          ID unik produk yang terkait dengan pesanan yang terduplikasi.
-      - name: count_rows
-        description: >
-          Jumlah baris duplikat yang ditemukan untuk kombinasi `order_id` dan `product_id`. 
-          Jika nilai lebih besar dari 1, itu menunjukkan adanya duplikasi.
-    meta:
-      owner: "bayu setyo aji  nugroho"
-      created_on: "2024-11-20"
-      tags: 
-        - validation
-
-
   - name: dim_customers
     description: >
-      Model ini merupakan **dimension table** yang dirancang untuk menyimpan informasi unik 
-      mengenai pelanggan. Data ini diambil dari tabel intermediate `int_dims_customers` 
-      dan dimurnikan untuk memastikan hanya kolom yang relevan yang disertakan. 
-
-      **Tujuan utama model ini adalah:**
-      - Memberikan referensi data pelanggan yang bersih dan terstruktur untuk kebutuhan analisis.
-      - Mendukung hubungan antara data pelanggan dan data faktual lainnya, seperti pesanan atau pembayaran.
-      - Menyediakan atribut pelanggan untuk analisis geografis, seperti kota dan negara bagian.
-
-    purpose: >
-      Model ini bertujuan untuk menjadi sumber data utama bagi atribut pelanggan, yang dapat digunakan 
-      dalam analisis segmentasi pelanggan, evaluasi wilayah geografis, dan pembuatan laporan.
-
-    usage: >
-      Model ini digunakan ketika dibutuhkan informasi pelanggan, seperti:
-      - Identifikasi pelanggan berdasarkan ID unik.
-      - Analisis distribusi geografis pelanggan.
-      - Kebutuhan atribut pelanggan dalam hubungannya dengan tabel fact lainnya.
-
+      Model ini adalah **dimension table** yang dirancang untuk menyimpan informasi unik mengenai pelanggan. Data diambil dari tabel intermediate `int_dims_customers` dan dimurnikan untuk memastikan hanya kolom yang relevan yang disertakan. Model ini bertujuan untuk memberikan referensi data pelanggan yang bersih dan terstruktur, mendukung hubungan antara data pelanggan dan data faktual lainnya seperti pesanan atau pembayaran, serta menyediakan atribut pelanggan untuk analisis geografis, seperti kota dan negara bagian. Model ini digunakan untuk analisis segmentasi pelanggan, evaluasi wilayah geografis, dan pembuatan laporan, serta menyediakan informasi pelanggan berdasarkan ID unik, distribusi geografis, dan atribut lainnya dalam hubungannya dengan tabel fact.
     columns:
       - name: customer_id
         description: >
@@ -190,27 +118,7 @@ models:
 
   - name: dim_date
     description: >
-      Model ini merupakan **dimension table** yang dirancang untuk menyimpan informasi 
-      terkait tanggal dan waktu dari siklus pesanan. Data ini diambil dari tabel intermediate 
-      `int_dims_date_orders` dan dimurnikan untuk mencakup atribut waktu yang relevan 
-      dengan proses pesanan. 
-
-      **Tujuan utama model ini adalah:**
-      - Menyediakan dimensi waktu yang terstruktur untuk analisis terkait siklus hidup pesanan.
-      - Mempermudah penghitungan dan analisis berbasis waktu, seperti durasi pengiriman dan kepatuhan SLA (Service Level Agreement).
-      - Mendukung integrasi dengan tabel fact lain dalam proses analisis.
-
-    purpose: >
-      Model ini bertujuan untuk menyediakan dimensi waktu yang kaya dan detail, yang dapat 
-      digunakan dalam analisis proses pesanan, pengiriman, dan evaluasi waktu pengiriman.
-
-    usage: >
-      Model ini digunakan dalam analisis data yang memerlukan informasi terkait:
-      - Tanggal dan waktu pembelian pesanan.
-      - Tanggal persetujuan pesanan.
-      - Tanggal pengiriman oleh kurir dan penerimaan oleh pelanggan.
-      - Estimasi waktu pengiriman dibandingkan dengan waktu pengiriman aktual.
-
+      Model ini adalah **dimension table** yang dirancang untuk menyimpan informasi terkait tanggal dan waktu dari siklus pesanan. Data diambil dari tabel intermediate `int_dims_date_orders` dan dimurnikan untuk mencakup atribut waktu yang relevan dengan proses pesanan. Model ini bertujuan untuk menyediakan dimensi waktu yang terstruktur untuk analisis siklus hidup pesanan, mempermudah penghitungan dan analisis berbasis waktu seperti durasi pengiriman dan kepatuhan SLA (Service Level Agreement), serta mendukung integrasi dengan tabel fact lain dalam proses analisis. Model ini digunakan dalam analisis yang memerlukan informasi terkait tanggal dan waktu pembelian pesanan, persetujuan pesanan, pengiriman oleh kurir, penerimaan oleh pelanggan, serta estimasi waktu pengiriman dibandingkan dengan waktu pengiriman aktual.
     columns:
       - name: order_id
         description: >
@@ -240,26 +148,7 @@ models:
 
   - name: dim_orders
     description: >
-      Model ini merupakan **dimension table** yang berfungsi untuk menyimpan informasi terkait 
-      atribut pesanan. Data ini diambil dari tabel intermediate `int_dims_orders` dan hanya 
-      mencakup kolom yang relevan seperti status pesanan dan metode pembayaran. 
-
-      **Tujuan utama model ini adalah:**
-      - Menyediakan data atribut pesanan yang bersih dan terstruktur untuk mendukung analisis lebih lanjut.
-      - Mempermudah pengelompokan atau segmentasi data berdasarkan status pesanan atau metode pembayaran.
-      - Mendukung integrasi dengan tabel fact untuk analisis lebih rinci.
-
-    purpose: >
-      Model ini bertujuan untuk menjadi referensi utama untuk informasi pesanan yang mencakup 
-      status dan tipe pembayaran, yang digunakan dalam analisis kinerja pesanan, perilaku pelanggan, 
-      dan evaluasi metode pembayaran.
-
-    usage: >
-      Model ini digunakan ketika diperlukan informasi tentang:
-      - Status pesanan untuk analisis seperti tingkat pembatalan atau penyelesaian pesanan.
-      - Metode pembayaran untuk memahami preferensi pelanggan atau mengevaluasi distribusi metode pembayaran.
-      - Hubungan atribut pesanan dengan data faktual lainnya dalam analisis lintas fungsi.
-
+      Model ini merupakan **dimension table** yang menyimpan informasi terkait atribut pesanan, seperti status pesanan dan metode pembayaran, yang diambil dari tabel intermediate `int_dims_orders`. Model ini bertujuan untuk menyediakan data atribut pesanan yang bersih dan terstruktur, mendukung pengelompokan atau segmentasi berdasarkan status pesanan atau metode pembayaran, serta memungkinkan integrasi dengan tabel fact untuk analisis lebih rinci. Model ini digunakan untuk analisis kinerja pesanan, perilaku pelanggan, dan evaluasi metode pembayaran, dengan memberikan informasi terkait status pesanan dan metode pembayaran, serta hubungan atribut pesanan dengan data faktual lainnya dalam analisis lintas fungsi.
     columns:
       - name: order_id
         description: >
@@ -280,28 +169,7 @@ models:
 
   - name: product_category_name
     description: >
-      Model ini merupakan **dimension table** yang digunakan untuk menyimpan informasi tentang 
-      nama kategori produk dalam bahasa asli dan bahasa Inggris. Data ini diambil dari tabel 
-      intermediate `int_dims_product_category_name` dan hanya menyertakan kolom yang relevan 
-      untuk kebutuhan analisis kategori produk. 
-
-      **Tujuan utama model ini adalah:**
-      - Menyediakan referensi nama kategori produk dalam dua bahasa untuk mendukung berbagai 
-        kebutuhan analisis.
-      - Mempermudah pengelompokan produk berdasarkan kategori dalam laporan atau dashboard.
-      - Mendukung integrasi dengan tabel fact atau tabel dimensi lainnya dalam data warehouse.
-
-    purpose: >
-      Model ini bertujuan untuk menyediakan data standar tentang nama kategori produk, 
-      baik dalam bahasa asli maupun bahasa Inggris, yang dapat digunakan untuk kebutuhan 
-      analisis multi-bahasa atau lokal.
-
-    usage: >
-      Model ini digunakan untuk:
-      - Analisis produk berdasarkan kategori tertentu.
-      - Menyediakan nama kategori produk dalam laporan atau visualisasi.
-      - Mengintegrasikan nama kategori dengan data faktual untuk analisis lintas fungsi.
-
+      Model ini merupakan **dimension table** yang menyimpan informasi tentang nama kategori produk dalam bahasa asli dan bahasa Inggris, yang diambil dari tabel intermediate `int_dims_product_category_name`. Model ini bertujuan untuk menyediakan referensi nama kategori produk dalam dua bahasa untuk mendukung analisis multi-bahasa atau lokal, mempermudah pengelompokan produk berdasarkan kategori dalam laporan atau dashboard, dan mendukung integrasi dengan tabel fact atau tabel dimensi lainnya dalam data warehouse. Model ini digunakan untuk analisis produk berdasarkan kategori, menyediakan nama kategori produk dalam laporan atau visualisasi, serta mengintegrasikan nama kategori dengan data faktual untuk analisis lintas fungsi.
     columns:
       - name: product_category_name
         description: >
@@ -319,28 +187,7 @@ models:
 
   - name: dim_reviews
     description: >
-      Model ini merupakan **dimension table** yang digunakan untuk menyimpan informasi terkait 
-      ulasan atau review dari pelanggan terhadap pesanan. Data ini diambil dari tabel intermediate 
-      `int_dims_reviews` dan mencakup atribut penting seperti ID ulasan, judul, dan pesan komentar. 
-
-      **Tujuan utama model ini adalah:**
-      - Menyediakan data ulasan pelanggan yang terstruktur untuk mendukung analisis sentimen 
-        atau kepuasan pelanggan.
-      - Mempermudah penghubungan ulasan dengan data pesanan untuk analisis mendalam.
-      - Mendukung pelaporan terkait ulasan pelanggan pada berbagai tingkat, baik agregat maupun individu.
-
-    purpose: >
-      Model ini bertujuan untuk menyediakan data ulasan pelanggan yang bersih dan lengkap, 
-      yang dapat digunakan untuk analisis pengalaman pelanggan, identifikasi masalah produk atau layanan, 
-      serta pembuatan laporan kepuasan pelanggan.
-
-    usage: >
-      Model ini digunakan dalam analisis data terkait:
-      - Isi ulasan pelanggan untuk evaluasi kualitas layanan atau produk.
-      - Identifikasi pola dalam komentar untuk menemukan tren atau keluhan utama.
-      - Penghubungan antara ulasan dan pesanan untuk menganalisis hubungan antara kualitas 
-        pengiriman, produk, atau layanan dengan tingkat kepuasan pelanggan.
-
+      Model ini merupakan **dimension table** yang digunakan untuk menyimpan informasi terkait ulasan atau review pelanggan terhadap pesanan, yang diambil dari tabel intermediate `int_dims_reviews`. Model ini bertujuan untuk menyediakan data ulasan pelanggan yang terstruktur guna mendukung analisis sentimen atau kepuasan pelanggan, mempermudah penghubungan ulasan dengan data pesanan untuk analisis mendalam, dan mendukung pelaporan terkait ulasan pelanggan pada berbagai tingkat. Model ini digunakan untuk analisis data terkait isi ulasan pelanggan, identifikasi pola dalam komentar, serta penghubungan antara ulasan dan pesanan untuk menganalisis hubungan antara kualitas pengiriman, produk, atau layanan dengan tingkat kepuasan pelanggan.
     columns:
       - name: order_id
         description: >
@@ -364,26 +211,7 @@ models:
 
   - name: dim_sellers
     description: >
-      Model ini merupakan **dimension table** yang digunakan untuk menyimpan informasi terkait 
-      penjual (sellers). Data ini diambil dari tabel intermediate `int_dims_sellers` dan mencakup 
-      atribut seperti ID penjual, kode pos, kota, dan negara bagian. 
-
-      **Tujuan utama model ini adalah:**
-      - Menyediakan informasi lokasi dan identitas penjual untuk mendukung analisis berbasis geografis.
-      - Mempermudah penghubungan penjual dengan data transaksi atau produk dalam analisis.
-      - Mendukung pengelompokan dan pelaporan penjual berdasarkan wilayah atau area operasional.
-
-    purpose: >
-      Model ini bertujuan untuk menyediakan data penjual yang bersih dan terstruktur, 
-      yang dapat digunakan dalam analisis kinerja penjual, evaluasi distribusi geografis, 
-      dan mendukung integrasi dengan data transaksi atau produk.
-
-    usage: >
-      Model ini digunakan untuk:
-      - Analisis kinerja penjual berdasarkan lokasi geografis.
-      - Pemahaman distribusi penjual untuk kebutuhan logistik atau pemasaran.
-      - Penghubungan informasi penjual dengan data transaksi atau produk dalam analisis lintas fungsi.
-
+      Model ini merupakan **dimension table** yang digunakan untuk menyimpan informasi terkait penjual (sellers), yang diambil dari tabel intermediate `int_dims_sellers`. Model ini bertujuan untuk menyediakan data penjual yang bersih dan terstruktur, yang dapat digunakan dalam analisis kinerja penjual, evaluasi distribusi geografis, dan mendukung integrasi dengan data transaksi atau produk. Model ini digunakan untuk analisis kinerja penjual berdasarkan lokasi geografis, pemahaman distribusi penjual untuk kebutuhan logistik atau pemasaran, serta penghubungan informasi penjual dengan data transaksi atau produk dalam analisis lintas fungsi.
     columns:
       - name: seller_id
         description: >
@@ -403,3 +231,6 @@ models:
       created_on: "2024-11-20"
       tags: 
         - dim_table
+
+
+        

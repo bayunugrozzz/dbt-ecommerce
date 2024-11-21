@@ -33,7 +33,7 @@ final AS (
     SELECT
         customer_id
         , order_id
-        , seller_id
+        , coalesce(seller_id, 'unknown') AS seller_id
         , product_id
         , payment_installments
         , payment_sequential
